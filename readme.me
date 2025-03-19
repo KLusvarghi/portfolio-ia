@@ -1,0 +1,55 @@
+## supabase password: *haZu5S-gvN*p$8
+## project api key eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpscmRkc2RhcXVobXFjZXlyeW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI0MTIxNDksImV4cCI6MjA1Nzk4ODE0OX0.Hh2EIx5GC79r_tTsNTdbQi4c6EYL1GEz9IBIIEhrwS4
+
+
+## dentro de core a gente instala o package .json
+  npm init -y
+
+##instalando nosso backend com nest
+   basta em https://docs.nestjs.com/ copiar os priemiros comando:
+   -$ npm i -g @nestjs/cli  - irá instalar o nest na nossa maquina
+      - dando um **nest --help** ele nos dará uma serie de comando
+      - dentre eles o **nest new nomedoarquivo** e assim ele irá criar o arquivo 'backened' com todas as dependencias que precisamos para o backend
+
+  ## Proximo passo - estabelecer relacção entre a pasta "Cors" com a pasta "backend"
+    dentro de "backend" vamos até a pasta **tsconfig.json** e acrescentamso na ultima linha:
+    ```sh
+      "paths": {
+        "@core": ["../core/src"],
+      }
+    ```
+
+
+    ## a pasta **dist** é a pasta ondem tem a versão final que iremos chamar para subir para o servidor
+      -- e se a gente deixar a aplciação desta maneira ele ta gernado erro ao dar 
+      ```sh
+        npm run start:dev
+      ```
+      -- isso por que ele ainda não se tocou que tem que mudar o import dentro da pasta **main**
+        --para resolver isso, quando a gente da nest --help ele nos da a opção **--entryFile**, e vamos usar ela dentro do **package.json** dentro do comando **"start:dev"**
+        - ficando assim:
+          - "start:dev": "nest start --watch --entryFile backend/src/main"
+          - com isso ele chamará este arquivo para executar a aplicação para test
+          - podendo observar que já colocamos a rota 'backend/src/main' a partir da pasta **dist** porque ele já entende
+
+  ## Resumindo, agora nosso **backend** já está acessando nosso módulo compartilhado, que é o **CORS**
+    - nossa intenção é usar esse arquivo *cors* para compartilhar variáveis, entre outros entre o backend e o frontend
+  
+
+
+# Instalação do Prisma
+  ## como já temos nosso proejto isntalado, pulamos algumas configurações que o prisma nos da e executamos dentro de **backend**. https://www.prisma.io/docs/getting-started/quickstart-sqlite
+  ```sh
+    npm install prisma --save-dev
+  ```
+
+## em seguida iniciamos o Prisma, ele irá criar as variáveis de ambiente, etc
+  > ATENÇÃO: Como nós vamos usar o supabase, não vamos colcoar o comando interiro que o prisma nos oferece que irá utilziar o sqllite. E o supabase é baseado em Postgree SQL
+    ```sh
+      npx prisma init 
+      ```
+    - e com isso é criado o arquivo **.env** com um **URL_DATABASE** como se estivesse usando banco de dados local, junto com a pasta "prisma" com o schema.prisma, que é onde iremos criar nosso modelo de dados
+
+   ## para fazer a conexão com o supabase
+    - dentro do supabase e dentro do projeto, vai em **connect**, e dentro da aba **ORMs** ele vai nos dar todas as variáveis que temos que colcoar entro de ".env" para fazer a conexão, e com isso, dentro dessa variável que ele dá, ele pede para colocar nossa password do banco de dados
+    - em paralelo, criamos o arquivo **.env.sample** para que quando a gente enviar o projeto para o repositorio, a gente não envie nem mesmo a string de conexão, não deixando dentro do arquivo .env
