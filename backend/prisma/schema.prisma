@@ -8,14 +8,27 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// criando um model
 model Technology {
-  id        Int     @id @default(autoincrement()) // sendo uma chave de auto incremento
+  id        Int       @id @default(autoincrement())
   nome      String
   descricao String
   imagem    String
-  destaque  Boolean @default(false)// passando valor padrão de false
+  destaque  Boolean   @default(false)
+  Project   Project[]
 
-  // sendo esse o nome da tabela
   @@map("technologies")
+}
+
+model Project {
+  id           Int          @id @default(autoincrement())
+  nome         String
+  descricao    String
+  nivel        Int
+  tipo         String
+  destaque     Boolean      @default(false)
+  repositorio  String
+  imagens      String[]
+  technologies Technology[]
+
+  @@map("projects")
 }

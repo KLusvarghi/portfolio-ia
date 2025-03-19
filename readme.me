@@ -62,3 +62,9 @@
     - para isso, dentro do retminal rodamos "npx prisma migrate dev" e ele vai pegar tudo que tem dentro de **schema.prisma** e vai aplciar no banco de dados
     - com isso, ele irá criar dentro da pasta **prisma** uma pasta chamada "migrations" e dentro dela, um arquivo com a data e hora que foi criado, e dentro dele, o arquivo **migration.sql** que é o arquivo que foi aplicado no banco de dados, e nele estará todas as alterações que foram feitas no schema.
        - ENtão, toda alteração feita, é uma migration, que irá criar um novo arquivo .sql, senod o 'prisma" que cria o schema para a gente
+
+    # Quando criar uma migration e sem querer colocou os dados errado ou faltou algo, ou voce pode apenas alterar no código, e ele irá sobrescrever, ou pode ir no proprio editor sql do supabase e digitar o script, ou pode dar o comando "npx prisma migrate reset" e com isso ele irá limpar todas as tabelas e executar as migrations que esão registradas debtro do arquivo **migration.sql**
+
+    # e quando a gente quer fazer uma relação de uma tabela a outra, a gente pode criar uma outra tabela, ou a gente pode apenas fazer menção de uma tabela para outra automaticamente
+
+    # se voce faz uma alteração em alguma tabela direto na interface so supabase e precisa atualizar no código, de o comando "npx prisma db pull"
