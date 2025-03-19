@@ -1,4 +1,5 @@
 ## supabase password: *haZu5S-gvN*p$8
+## porfotio-ia: kaua0707
 ## project api key eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpscmRkc2RhcXVobXFjZXlyeW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI0MTIxNDksImV4cCI6MjA1Nzk4ODE0OX0.Hh2EIx5GC79r_tTsNTdbQi4c6EYL1GEz9IBIIEhrwS4
 
 
@@ -53,3 +54,11 @@
    ## para fazer a conexão com o supabase
     - dentro do supabase e dentro do projeto, vai em **connect**, e dentro da aba **ORMs** ele vai nos dar todas as variáveis que temos que colcoar entro de ".env" para fazer a conexão, e com isso, dentro dessa variável que ele dá, ele pede para colocar nossa password do banco de dados
     - em paralelo, criamos o arquivo **.env.sample** para que quando a gente enviar o projeto para o repositorio, a gente não envie nem mesmo a string de conexão, não deixando dentro do arquivo .env
+
+
+# Agora, iremos criar a tabela de "tecnologias" e subir lá no supabase
+  -Para isso, dentro do arquivo ".env.samples" precisamos ter aquelas duas variaáveis confiqguradas
+  - Após isso e após criar o model, vamos aplicar esse model atravez de uma **migration**
+    - para isso, dentro do retminal rodamos "npx prisma migrate dev" e ele vai pegar tudo que tem dentro de **schema.prisma** e vai aplciar no banco de dados
+    - com isso, ele irá criar dentro da pasta **prisma** uma pasta chamada "migrations" e dentro dela, um arquivo com a data e hora que foi criado, e dentro dele, o arquivo **migration.sql** que é o arquivo que foi aplicado no banco de dados, e nele estará todas as alterações que foram feitas no schema.
+       - ENtão, toda alteração feita, é uma migration, que irá criar um novo arquivo .sql, senod o 'prisma" que cria o schema para a gente
