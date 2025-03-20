@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",               // Alvo da compilação
+      "module": "CommonJS",             // Módulo do Node.js
+      "moduleResolution": "node",       // Resolução de módulos
+      "esModuleInterop": true,          // Para lidar com ESM e CommonJS juntos
+      "skipLibCheck": true,             // Ignora verificações de tipo em bibliotecas
+      "strict": true,                   // Verificação de tipo estrita
+      "allowJs": true,                  // Permite o uso de arquivos JavaScript junto com TypeScript
+      "resolveJsonModule": true         // Permite importar arquivos JSON
+    },
+    "include": [
+      "src/**/*.ts"
+    ]
+  }
+  
+  
