@@ -1,7 +1,6 @@
 # Documentação de Configuração do Projeto
 
 ## Índice
-- [Credenciais e Chaves de API](#credenciais-e-chaves-de-api)
 - [Configuração do Pacote Core](#configuração-do-pacote-core)
 - [Configuração do Backend com NestJS](#configuração-do-backend-com-nestjs)
 - [Conectando Core e Backend](#conectando-core-e-backend)
