@@ -10,6 +10,6 @@ export default interface Project {
 	tipo: Tipo
 	nivel: Nivel
 	repositorio: string
-	destaque: string
+	destaque: boolean
 	tecnologias: Tecnologies[]
 }

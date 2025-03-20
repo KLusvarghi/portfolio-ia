@@ -227,4 +227,152 @@ Esta arquitetura permite compartilhar código entre módulos, gerenciar modelos 
   - começando por technologie, nó vamos criar o "controller" para que a gente possa acessar os dados de "technologies" através dos methods GET, POST, PUT e DELETE da nossa API Rest
 
 
+-- COnfigurando o Prisma
+  -- vamos criar uma classe para que possamos acessar o prisma através desta classe
+  - então, dentro do modulo do banco de dados "backend/src/db" vamos implmementar essa classe, para que dentro dessa classe a gente consiga implementar nossa API de "technologies".
 
+  - dando "nest --help" podemos ver varios comando, e dentro deles tem o "controller" que não serve neste caso porque ele não vai fazer parte dessa API, e nem um "service", até poderia ser, mas o service é uma boa prática colcoar ele a cosias mais relacionadas a regras. Mas neste caso vamos criar um "provider", usando o comando "nest g pr prisma.provider --no-spec --flat" dentro de "backend/src/db"
+    - o "--no-spec" serve para ele não criar um arquivo de teste para o provider, que não é necessário neste caso.
+    - o "--flat" serve para ele não crie uma subpasta, e sim criar um arquivo direto na pasta "db" 
+
+      - e com isso ele cria nosso arquivo provider e já registra ele dentro de "db.module.ts"
+    
+ - E com isso, a intenção de usar "modulos" é que, conseguimos de forma explicita o que pode ser usado por outros módulos
+        ```
+          @Module({
+            providers: [PrismaProvider],
+            exports: [PrismaProvider],
+          })
+        ```
+
+ - Após isso, dentro do privider, extendemos a classe para PrismaCLient para que possamos acessar o prisma através da classe.
+
+ #Criando um controller denro de 'technology'
+ - esse controller é o responsável por receber as requisições do cliente e retornar as respostas. Então, basicamente ele recebe o que o cliente quer e retorna os dados de 'tecnology' 
+  - dando o comando "nest g co technology --no-spec --flat" dentro de "backend/src/tecchnology", com isso ele cria um arquivo chamado "technology.controller.ts"
+  e dentro dele podemos criar rotas que serão acessadas pelo cliente.
+  ```
+      @Controller("technologies")
+    export class TechnologyController {
+      // esse "@Get" irá nos retornar o que está logo abaixo dele, e como não passamos nenhuma rota, ele irá retornar a raiz do nosso projeto em "localhost:3000/technologies"'
+      @Get()
+      async getAll() {
+        return ["Angular", "React", "Vue"]
+      }
+    }
+```
+
+# Criando o provider de "technology
+  - esse provider é o responsável por acessar o banco de dados e retornar os dados de 'technologies'
+  - dentro de 'technology basta dar o comando "nest g pr technology --no-spec --flat" dentro de "backend/src/technology"
+  - O proximo passo é utilizar o "prisma.provider.ts" que esta dentro de "src/db", queé o local que conseguimos acessar os dados do prisma
+    - então, para que eu consigo dentro do modulo de "technology" acessar o modulo do "banco de dados", eu preciso, dentro do "technology.module.ts" dizer que eu dependo do "db.module.ts"
+    ```js
+          @Module({
+      controllers: [TechnologyController],
+      providers: [TechnologyProvider],
+      imports: [DbModule],
+    })
+    ```
+- Mas, eu só consigo acessar o Prisma, porque, dentro do "db.module" ele exporta o "PrismaProvider"
+
+```js
+@Module({
+  providers: [PrismaProvider],
+  exports: [PrismaProvider],
+})
+```
+- e dentro do provider de Technologies eu faço:
+
+```js
+export class TechnologyProvider {
+	constructor(private readonly prisma: PrismaProvider) {}
+
+	async getAllTechnologies(): Promise<Tecnologies> {
+		return this.prisma.technology.findMany() // só com ess alinha a gente vai obter todas as tecnologias
+	}
+}
+```
+
+    - O "findmany" (encontre muitos) serve para buscar varios dados dentro do banco de dados sem filtro, assim, pegando todos os dados de "technology"
+
+
+# Criando outra rota dentro de technology
+  - ele irá criar uma rota chamada "destaques" dentro de "technologies"
+
+```js
+
+@Get("destaques")
+	async getDestaques(): Promise<Tecnologies[]> {
+		return this.repo.getAllDestaques()
+	}
+```
+
+# criando uma nova função dentro de "technology.provider.ts"' que irá retornar apenas os dados que contem o campo "destaque" como true
+
+```js
+async getAllDestaques(): Promise<Tecnologies[]> {
+		return this.prisma.technology.findMany({
+			// assim, podemos filtrar os dados que queremos buscar, nesse caso, os que são destaque
+			where: {
+				destaque: true,
+			},
+		})
+	}
+```
+
+ 
+# O mesmo vamos aplicar para "Projects", criando um novo controle e um novo provider
+- dentro de "backend/src/project" vamos dar o comando "nest g co project --no-spec --flat" e criamos:
+```js
+import { Controller, Get, Param } from "@nestjs/common"
+import { ProjectPrima } from "./project.prima"
+import { Project } from "@core"
+
+@Controller("projects")
+export class ProjectController {
+	constructor(private readonly repo: ProjectPrima) {}
+
+	@Get()
+	async getAllProjects(): Promise<Project[]> { // retorna todos os projetos
+		return this.repo.getAllProjects()
+	}
+
+	@Get(":id")
+	async getProjectsById(@Param("id") id: string): Promise<Project | null> { // retorna um projeto específico pelo ID
+		return this.repo.getProjectById(Number(id))
+	}
+}
+```
+
+- ja no provider, vamos criar as funções que acessam os dados do banco de dados
+```js
+@Injectable()
+export class ProjectPrima {
+	constructor(private readonly prisma: PrismaProvider) {}
+
+	// Irá retornar todos os projetos com seus atributos
+	async getAllProjects(): Promise<Project[]> {
+		return this.prisma.project.findMany() as any
+	}
+
+	// Irá retornar o projeto com o id passado por parâmetro, incluindo apenas as tecnologias
+	async getProjectById(id: number): Promise<Project | null> {
+		return this.prisma.project.findUnique({ // como queremos retornar apenas um valor, podemos suar o fingUnique
+			where: { id },
+			include: {
+				technologies: true,
+
+				// podendo selecionar quais atributos queremos que sejam retornados
+				// select: {
+				// 	id: true,
+				// 	name: true,
+				// 	image: true,
+				// 	link: true,
+				// },
+			},
+		}) as any
+	}
+  ```
+
+  
