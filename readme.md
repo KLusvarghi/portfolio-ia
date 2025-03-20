@@ -1,6 +1,10 @@
 # Documentação de Configuração do Projeto
 
-## Índice
+Este documento descreve o processo de configuração de um projeto modular usando NestJS, Prisma e Supabase. A arquitetura é baseada em módulos compartilhados, permitindo uma clara separação de responsabilidades.
+
+## Sumário
+- [Visão Geral da Arquitetura](#visão-geral-da-arquitetura)
+- [Pré-requisitos](#pré-requisitos)
 - [Configuração do Pacote Core](#configuração-do-pacote-core)
 - [Configuração do Backend com NestJS](#configuração-do-backend-com-nestjs)
 - [Conectando Core e Backend](#conectando-core-e-backend)
@@ -8,20 +12,55 @@
 - [Conexão com Supabase](#conexão-com-supabase)
 - [Migrações de Banco de Dados](#migrações-de-banco-de-dados)
 - [Gerenciando Alterações no Banco de Dados](#gerenciando-alterações-no-banco-de-dados)
-- [Estrutura Final do Projeto](#estrutura-final-do-projeto)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Implementação dos Módulos](#implementação-dos-módulos)
+  - [Configuração do Módulo de Banco de Dados](#configuração-do-módulo-de-banco-de-dados)
+  - [Módulo de Tecnologias](#módulo-de-tecnologias)
+  - [Módulo de Projetos](#módulo-de-projetos)
+- [Solução de Problemas Comuns](#solução-de-problemas-comuns)
 
+## Visão Geral da Arquitetura
 
-**Nota de segurança**: Não inclua senhas e chaves de API em arquivos que serão versionados. Este exemplo é apenas para documentação.
+O projeto é estruturado com base em uma arquitetura modular:
+
+- **Core**: Biblioteca compartilhada que contém interfaces, tipos e funções comuns
+- **Backend**: Aplicação NestJS que implementa a API REST
+- **Módulos NestJS**: Unidades independentes para gestão de dados (DB, Tecnologias, Projetos, etc.)
+- **Prisma**: ORM para interação com banco de dados PostgreSQL via Supabase
+
+Esta arquitetura facilita a manutenção, o teste e o escalonamento da aplicação.
+
+## Pré-requisitos
+
+- Node.js (v14 ou superior)
+- npm ou yarn
+- Conta no Supabase com um projeto criado
+- Conhecimento básico de TypeScript e NestJS
 
 ## Configuração do Pacote Core
 
-Inicialize o arquivo package.json no diretório core:
+O pacote Core contém código compartilhado entre diferentes partes da aplicação.
+
+1. Inicialize o arquivo package.json no diretório core:
 
 ```bash
+mkdir -p core/src
+cd core
 npm init -y
 ```
 
-Este comando cria um arquivo package.json básico que será usado para gerenciar as dependências do módulo compartilhado.
+2. Configure o TypeScript no Core (opcional, mas recomendado):
+
+```bash
+npm install typescript @types/node --save-dev
+npx tsc --init
+```
+
+O pacote Core pode conter:
+- Interfaces compartilhadas
+- DTOs (Data Transfer Objects)
+- Funções utilitárias
+- Constantes e enumerações
 
 ## Configuração do Backend com NestJS
 
@@ -43,34 +82,32 @@ nest --help
 nest new backend
 ```
 
-O NestJS criará toda a estrutura básica necessária para o backend, incluindo:
-- Arquivos de configuração
+O NestJS criará uma estrutura completa, incluindo:
+- Configurações iniciais
 - Estrutura de diretórios
-- Dependências básicas
-- Scripts para desenvolvimento e produção
+- Módulo raiz (AppModule)
+- Controlador e serviço de exemplo
+- Scripts npm para desenvolvimento e produção
 
 ## Conectando Core e Backend
 
-Atualize o arquivo `tsconfig.json` na pasta backend para estabelecer uma conexão com o módulo core:
+Para que o backend possa acessar o código do Core:
+
+1. Atualize o arquivo `tsconfig.json` na pasta backend:
 
 ```json
 {
-  // outras configurações...
-  
-  "paths": {
-    "@core": ["../core/src"]
+  "compilerOptions": {
+    // outras configurações...
+    "paths": {
+      "@core": ["../core/src"],
+      "@core/*": ["../core/src/*"]
+    }
   }
 }
 ```
 
-### Notas de Configuração
-
-- A pasta `dist` contém a versão final que será implantada no servidor
-- Por padrão, executar `npm run start:dev` gerará erros porque o caminho de importação precisa ser atualizado
-
-### Corrigindo o Arquivo de Entrada
-
-Atualize o arquivo `package.json` no script "start:dev" para usar a opção `--entryFile`:
+2. Atualize o arquivo `package.json` no backend para usar o caminho correto:
 
 ```json
 {
@@ -80,299 +117,425 @@ Atualize o arquivo `package.json` no script "start:dev" para usar a opção `--e
 }
 ```
 
-Isso garante que a aplicação seja executada a partir do ponto de entrada correto. O NestJS agora será capaz de encontrar o módulo core compartilhado.
+> **Importante**: A pasta `dist` contém a versão compilada do projeto e não deve ser editada diretamente.
 
 ## Configuração do Prisma
+
+O Prisma é um ORM moderno para Node.js e TypeScript que facilita o acesso ao banco de dados.
 
 1. Instale o Prisma no diretório do backend:
 
 ```bash
+cd backend
+npm install @prisma/client
 npm install prisma --save-dev
 ```
 
-2. Inicialize o Prisma (observe que não estamos usando SQLite, pois nos conectaremos ao Supabase com PostgreSQL):
+2. Inicialize o Prisma para configurar um arquivo de esquema vazio:
 
 ```bash
 npx prisma init
 ```
 
-Isso cria:
-- Arquivo `.env` com uma URL padrão de banco de dados
+Isso criará:
+- Arquivo `.env` com uma URL de banco de dados padrão
 - Pasta `prisma` com `schema.prisma` para modelagem de dados
-
-O Prisma é um ORM (Object-Relational Mapping) que simplifica a interação com o banco de dados usando TypeScript.
 
 ## Conexão com Supabase
 
-1. No painel do projeto do Supabase, vá para **Connect** > **ORMs**
-2. Copie as variáveis da string de conexão fornecidas
-3. Atualize o arquivo `.env` com seus detalhes de conexão do Supabase
-4. Crie um arquivo `.env.sample` sem informações sensíveis para controle de versão
+O Supabase fornece um backend PostgreSQL totalmente gerenciado.
 
-Exemplo de como seu arquivo `.env` deve ficar:
+1. Acesse o painel do seu projeto Supabase:
+   - Navegue para **Project Settings** > **Database** > **Connection string**
+   - Selecione a opção **URI**
+
+2. Copie a string de conexão e atualize seu arquivo `.env`:
 
 ```
 DATABASE_URL="postgresql://postgres:[SEU-PASSWORD]@db.[SEU-PROJECT-ID].supabase.co:5432/postgres"
 ```
 
+3. Crie um arquivo `.env.sample` sem informações sensíveis:
+
+```
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-ID].supabase.co:5432/postgres"
+```
+
+> **⚠️ Nota de segurança**: Nunca inclua senhas reais e chaves de API em arquivos versionados. Adicione `.env` ao seu `.gitignore`.
+
 ## Migrações de Banco de Dados
 
-### Criando Tabelas
+### Definindo Modelos
 
 1. Defina seus modelos em `schema.prisma`. Exemplo:
 
 ```prisma
 model Tecnologia {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  descricao String?
-  criado_em DateTime @default(now())
+  id          Int       @id @default(autoincrement())
+  nome        String
+  descricao   String?
+  destaque    Boolean   @default(false)
+  criado_em   DateTime  @default(now())
+  projetos    Projeto[]
+}
+
+model Projeto {
+  id           Int          @id @default(autoincrement())
+  nome         String
+  descricao    String?
+  imagem       String?
+  link         String?
+  criado_em    DateTime     @default(now())
+  tecnologias  Tecnologia[]
 }
 ```
 
-2. Aplique as alterações ao banco de dados:
+2. Gere os tipos TypeScript para seus modelos (opcional):
 
 ```bash
-npx prisma migrate dev --name criar-tabela-tecnologias
+npx prisma generate
 ```
 
-Isso irá:
-- Criar uma pasta `migrations` no diretório `prisma`
-- Gerar um arquivo de migração com carimbo de data/hora contendo comandos SQL
-- Aplicar as alterações ao seu banco de dados Supabase
+### Criando Tabelas
+
+1. Crie uma migração inicial:
+
+```bash
+npx prisma migrate dev --name criar_tabelas_iniciais
+```
+
+Este comando:
+- Cria uma pasta `migrations` no diretório `prisma`
+- Gera um arquivo SQL de migração com timestamp
+- Executa a migração no banco de dados Supabase
+- Gera cliente Prisma atualizado
 
 ## Gerenciando Alterações no Banco de Dados
 
-Se você precisar corrigir erros em suas migrações:
+### Alterações Planejadas
 
-- Opção 1: Atualize seu schema e crie uma nova migração
-- Opção 2: Edite SQL diretamente no editor SQL do Supabase
-- Opção 3: Redefina todas as migrações (atenção: limpa todos os dados):
+Quando você precisa modificar seu esquema de banco de dados:
+
+1. Modifique os modelos no arquivo `schema.prisma`
+2. Execute uma nova migração:
+
+```bash
+npx prisma migrate dev --name descricao_da_alteracao
+```
+
+### Lidando com Erros de Migração
+
+Se você encontrar problemas com migrações:
+
+- **Opção 1**: Corrija o esquema e crie uma nova migração
+- **Opção 2**: Edite o banco de dados diretamente via Console SQL do Supabase
+- **Opção 3**: Redefina completamente o banco de dados (⚠️ remove todos os dados):
 
 ```bash
 npx prisma migrate reset
 ```
 
-### Sincronizando Alterações de Banco de Dados
+### Sincronizando Esquema com Banco de Dados
 
-Se você fizer alterações diretamente no Supabase e precisar atualizar seu schema local:
+Se as alterações foram feitas diretamente no banco de dados:
 
 ```bash
 npx prisma db pull
 ```
 
-### Relacionamentos entre Tabelas
+## Estrutura do Projeto
 
-Você pode criar relacionamentos entre tabelas:
-- Criando uma nova tabela para o relacionamento
-- Adicionando referências diretas entre tabelas em seu schema
-
-Exemplo de relacionamento no schema:
-
-```prisma
-model Projeto {
-  id           Int          @id @default(autoincrement())
-  nome         String
-  tecnologias  Tecnologia[]
-}
-
-model Tecnologia {
-  id        Int       @id @default(autoincrement())
-  nome      String
-  projetos  Projeto[]
-}
-```
-
-## Estrutura Final do Projeto
-
-Após seguir todos os passos, seu projeto deve ter uma estrutura semelhante a esta:
+Após configurar todos os componentes, seu projeto deve ter a seguinte estrutura:
 
 ```
 projeto-raiz/
 ├── core/
 │   ├── package.json
+│   ├── tsconfig.json
 │   └── src/
-│       └── (arquivos compartilhados)
+│       ├── index.ts               # Exportações principais
+│       ├── interfaces/            # Interfaces compartilhadas
+│       └── utils/                 # Funções utilitárias
+│
 ├── backend/
-│   ├── dist/
+│   ├── dist/                      # Código compilado
 │   ├── node_modules/
 │   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
+│   │   ├── migrations/            # Migrações de banco de dados
+│   │   └── schema.prisma          # Definição do esquema
+│   │
 │   ├── src/
-│   │   └── main.ts
-│   ├── .env
-│   ├── .env.sample
+│   │   ├── main.ts                # Ponto de entrada
+│   │   ├── app.module.ts          # Módulo principal
+│   │   ├── db/                    # Módulo de banco de dados
+│   │   │   ├── db.module.ts
+│   │   │   └── prisma.provider.ts
+│   │   │
+│   │   ├── technology/            # Módulo de tecnologias
+│   │   │   ├── technology.module.ts
+│   │   │   ├── technology.controller.ts
+│   │   │   └── technology.provider.ts
+│   │   │
+│   │   └── project/               # Módulo de projetos
+│   │       ├── project.module.ts
+│   │       ├── project.controller.ts
+│   │       └── project.provider.ts
+│   │
+│   ├── .env                       # Variáveis de ambiente (não versionado)
+│   ├── .env.sample                # Exemplo de variáveis de ambiente
 │   ├── package.json
 │   └── tsconfig.json
-└── (outros arquivos do projeto)
+│
+└── README.md                      # Este documento
 ```
 
-Esta arquitetura permite compartilhar código entre módulos, gerenciar modelos de dados de forma eficiente e manter uma clara separação de responsabilidades entre componentes.
+## Implementação dos Módulos
 
+### Configuração do Módulo de Banco de Dados
 
---------------------
+O módulo DB serve como uma camada de abstração para acesso ao banco de dados:
 
-> Caso o arquivo do app.controller.ts não consiga acessar o arquivo .prettierrc na raiz do projeto, de o comando "npx prettier --check " e veja o erro, as vezes pode ser apenas erro do vscode que não conseguiu interpretar o arquivo.
+1. Crie o módulo DB:
 
--- COnfigurando Módulos
-# NO nest, uma dos seus diferenciais é utilziar o CLI para exevutar ações, dando "nest --help" ele irá nos dar varias opções, e dentro delas, a que mais iremos utilizar é o "nest g" snedo esse "g" de "generate", servindo para criar coisas
-
-- Assim como o angular, o nest ele é modularizado, sendo todo organizado em modulos, e esse modulos serão criados dentro do porjeto como pastas.
-  - O intuito desses modulos é para que voce consiga usar um modulo/pasta ou outra de forma mais burocrática, e também para que voce possa ter um controle melhor de como está seu projeto.
-
-  - dando o comando "nest g modeule db" ele cria uma pasta dentro de backend/src/db, e dentro dela ele cria um arquivo chamado db.module.ts, e dentro dele ele cria uma classe chamada DbModule, que é uma classe que vai ser responsável por gerenciar o modulo.
-    - e com isso criamos o module de projects e technologie
-  
-  - começando por technologie, nó vamos criar o "controller" para que a gente possa acessar os dados de "technologies" através dos methods GET, POST, PUT e DELETE da nossa API Rest
-
-
--- COnfigurando o Prisma
-  -- vamos criar uma classe para que possamos acessar o prisma através desta classe
-  - então, dentro do modulo do banco de dados "backend/src/db" vamos implmementar essa classe, para que dentro dessa classe a gente consiga implementar nossa API de "technologies".
-
-  - dando "nest --help" podemos ver varios comando, e dentro deles tem o "controller" que não serve neste caso porque ele não vai fazer parte dessa API, e nem um "service", até poderia ser, mas o service é uma boa prática colcoar ele a cosias mais relacionadas a regras. Mas neste caso vamos criar um "provider", usando o comando "nest g pr prisma.provider --no-spec --flat" dentro de "backend/src/db"
-    - o "--no-spec" serve para ele não criar um arquivo de teste para o provider, que não é necessário neste caso.
-    - o "--flat" serve para ele não crie uma subpasta, e sim criar um arquivo direto na pasta "db" 
-
-      - e com isso ele cria nosso arquivo provider e já registra ele dentro de "db.module.ts"
-    
- - E com isso, a intenção de usar "modulos" é que, conseguimos de forma explicita o que pode ser usado por outros módulos
-        ```
-          @Module({
-            providers: [PrismaProvider],
-            exports: [PrismaProvider],
-          })
-        ```
-
- - Após isso, dentro do privider, extendemos a classe para PrismaCLient para que possamos acessar o prisma através da classe.
-
- #Criando um controller denro de 'technology'
- - esse controller é o responsável por receber as requisições do cliente e retornar as respostas. Então, basicamente ele recebe o que o cliente quer e retorna os dados de 'tecnology' 
-  - dando o comando "nest g co technology --no-spec --flat" dentro de "backend/src/tecchnology", com isso ele cria um arquivo chamado "technology.controller.ts"
-  e dentro dele podemos criar rotas que serão acessadas pelo cliente.
-  ```
-      @Controller("technologies")
-    export class TechnologyController {
-      // esse "@Get" irá nos retornar o que está logo abaixo dele, e como não passamos nenhuma rota, ele irá retornar a raiz do nosso projeto em "localhost:3000/technologies"'
-      @Get()
-      async getAll() {
-        return ["Angular", "React", "Vue"]
-      }
-    }
+```bash
+cd backend
+nest g module db
 ```
 
-# Criando o provider de "technology
-  - esse provider é o responsável por acessar o banco de dados e retornar os dados de 'technologies'
-  - dentro de 'technology basta dar o comando "nest g pr technology --no-spec --flat" dentro de "backend/src/technology"
-  - O proximo passo é utilizar o "prisma.provider.ts" que esta dentro de "src/db", queé o local que conseguimos acessar os dados do prisma
-    - então, para que eu consigo dentro do modulo de "technology" acessar o modulo do "banco de dados", eu preciso, dentro do "technology.module.ts" dizer que eu dependo do "db.module.ts"
-    ```js
-          @Module({
-      controllers: [TechnologyController],
-      providers: [TechnologyProvider],
-      imports: [DbModule],
-    })
-    ```
-- Mas, eu só consigo acessar o Prisma, porque, dentro do "db.module" ele exporta o "PrismaProvider"
+2. Crie o provider Prisma:
 
-```js
+```bash
+nest g provider db/prisma --no-spec --flat
+```
+
+3. Implemente o `prisma.provider.ts`:
+
+```typescript
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaProvider extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor() {
+    super();
+  }
+
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
+```
+
+4. Configure o `db.module.ts` para exportar o provider:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { PrismaProvider } from './prisma.provider';
+
 @Module({
   providers: [PrismaProvider],
-  exports: [PrismaProvider],
+  exports: [PrismaProvider], // Importante para permitir acesso de outros módulos
 })
+export class DbModule {}
 ```
-- e dentro do provider de Technologies eu faço:
 
-```js
-export class TechnologyProvider {
-	constructor(private readonly prisma: PrismaProvider) {}
+### Módulo de Tecnologias
 
-	async getAllTechnologies(): Promise<Tecnologies> {
-		return this.prisma.technology.findMany() // só com ess alinha a gente vai obter todas as tecnologias
-	}
+1. Crie o módulo e seus componentes:
+
+```bash
+nest g module technology
+nest g controller technology --no-spec --flat
+nest g provider technology --no-spec --flat
+```
+
+2. Implemente o controlador `technology.controller.ts`:
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { TechnologyProvider } from './technology.provider';
+import { Tecnologia } from '@prisma/client';
+
+@Controller('technologies')
+export class TechnologyController {
+  constructor(private readonly repo: TechnologyProvider) {}
+
+  @Get()
+  async getAll(): Promise<Tecnologia[]> {
+    return this.repo.getAllTechnologies();
+  }
+
+  @Get('destaques')
+  async getDestaques(): Promise<Tecnologia[]> {
+    return this.repo.getAllDestaques();
+  }
 }
 ```
 
-    - O "findmany" (encontre muitos) serve para buscar varios dados dentro do banco de dados sem filtro, assim, pegando todos os dados de "technology"
+3. Implemente o provider `technology.provider.ts`:
 
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PrismaProvider } from '../db/prisma.provider';
+import { Tecnologia } from '@prisma/client';
 
-# Criando outra rota dentro de technology
-  - ele irá criar uma rota chamada "destaques" dentro de "technologies"
-
-```js
-
-@Get("destaques")
-	async getDestaques(): Promise<Tecnologies[]> {
-		return this.repo.getAllDestaques()
-	}
-```
-
-# criando uma nova função dentro de "technology.provider.ts"' que irá retornar apenas os dados que contem o campo "destaque" como true
-
-```js
-async getAllDestaques(): Promise<Tecnologies[]> {
-		return this.prisma.technology.findMany({
-			// assim, podemos filtrar os dados que queremos buscar, nesse caso, os que são destaque
-			where: {
-				destaque: true,
-			},
-		})
-	}
-```
-
- 
-# O mesmo vamos aplicar para "Projects", criando um novo controle e um novo provider
-- dentro de "backend/src/project" vamos dar o comando "nest g co project --no-spec --flat" e criamos:
-```js
-import { Controller, Get, Param } from "@nestjs/common"
-import { ProjectPrima } from "./project.prima"
-import { Project } from "@core"
-
-@Controller("projects")
-export class ProjectController {
-	constructor(private readonly repo: ProjectPrima) {}
-
-	@Get()
-	async getAllProjects(): Promise<Project[]> { // retorna todos os projetos
-		return this.repo.getAllProjects()
-	}
-
-	@Get(":id")
-	async getProjectsById(@Param("id") id: string): Promise<Project | null> { // retorna um projeto específico pelo ID
-		return this.repo.getProjectById(Number(id))
-	}
-}
-```
-
-- ja no provider, vamos criar as funções que acessam os dados do banco de dados
-```js
 @Injectable()
-export class ProjectPrima {
-	constructor(private readonly prisma: PrismaProvider) {}
+export class TechnologyProvider {
+  constructor(private readonly prisma: PrismaProvider) {}
 
-	// Irá retornar todos os projetos com seus atributos
-	async getAllProjects(): Promise<Project[]> {
-		return this.prisma.project.findMany() as any
-	}
+  async getAllTechnologies(): Promise<Tecnologia[]> {
+    return this.prisma.tecnologia.findMany();
+  }
 
-	// Irá retornar o projeto com o id passado por parâmetro, incluindo apenas as tecnologias
-	async getProjectById(id: number): Promise<Project | null> {
-		return this.prisma.project.findUnique({ // como queremos retornar apenas um valor, podemos suar o fingUnique
-			where: { id },
-			include: {
-				technologies: true,
+  async getAllDestaques(): Promise<Tecnologia[]> {
+    return this.prisma.tecnologia.findMany({
+      where: {
+        destaque: true,
+      },
+    });
+  }
+}
+```
 
-				// podendo selecionar quais atributos queremos que sejam retornados
-				// select: {
-				// 	id: true,
-				// 	name: true,
-				// 	image: true,
-				// 	link: true,
-				// },
-			},
-		}) as any
-	}
-  ```
+4. Configure o módulo para importar o DbModule:
 
-  
+```typescript
+import { Module } from '@nestjs/common';
+import { DbModule } from '../db/db.module';
+import { TechnologyController } from './technology.controller';
+import { TechnologyProvider } from './technology.provider';
+
+@Module({
+  imports: [DbModule],
+  controllers: [TechnologyController],
+  providers: [TechnologyProvider],
+})
+export class TechnologyModule {}
+```
+
+### Módulo de Projetos
+
+1. Crie o módulo e seus componentes:
+
+```bash
+nest g module project
+nest g controller project --no-spec --flat
+nest g provider project --no-spec --flat
+```
+
+2. Implemente o controlador `project.controller.ts`:
+
+```typescript
+import { Controller, Get, Param } from '@nestjs/common';
+import { ProjectProvider } from './project.provider';
+import { Projeto } from '@prisma/client';
+
+@Controller('projects')
+export class ProjectController {
+  constructor(private readonly repo: ProjectProvider) {}
+
+  @Get()
+  async getAllProjects(): Promise<Projeto[]> {
+    return this.repo.getAllProjects();
+  }
+
+  @Get(':id')
+  async getProjectsById(@Param('id') id: string): Promise<Projeto | null> {
+    return this.repo.getProjectById(Number(id));
+  }
+}
+```
+
+3. Implemente o provider `project.provider.ts`:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PrismaProvider } from '../db/prisma.provider';
+import { Projeto } from '@prisma/client';
+
+@Injectable()
+export class ProjectProvider {
+  constructor(private readonly prisma: PrismaProvider) {}
+
+  async getAllProjects(): Promise<Projeto[]> {
+    return this.prisma.projeto.findMany();
+  }
+
+  async getProjectById(id: number): Promise<Projeto | null> {
+    return this.prisma.projeto.findUnique({
+      where: { id },
+      include: {
+        tecnologias: true,
+      },
+    });
+  }
+}
+```
+
+4. Configure o módulo para importar o DbModule:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { DbModule } from '../db/db.module';
+import { ProjectController } from './project.controller';
+import { ProjectProvider } from './project.provider';
+
+@Module({
+  imports: [DbModule],
+  controllers: [ProjectController],
+  providers: [ProjectProvider],
+})
+export class ProjectModule {}
+```
+
+## Solução de Problemas Comuns
+
+### Problemas de Formatação com Prettier
+
+Se o VS Code apresentar erros relacionados ao Prettier:
+
+```bash
+npx prettier --check . 
+```
+
+Este comando verificará se há erros de formatação. Às vezes, o problema pode ser apenas uma falha na interpretação do arquivo pelo VS Code.
+
+### Problemas com Importações de Módulos
+
+Se encontrar erros de importação entre módulos:
+
+1. Verifique se o caminho em `tsconfig.json` está correto
+2. Confirme se o módulo está exportando os componentes necessários
+3. Reinicie o servidor de desenvolvimento
+
+### Problemas com o Prisma
+
+1. Para atualizar o cliente Prisma após alterações no schema:
+
+```bash
+npx prisma generate
+```
+
+2. Para visualizar seu banco de dados através da interface do Prisma:
+
+```bash
+npx prisma studio
+```
+
+## Próximos Passos
+
+- Implementar autenticação e autorização
+- Adicionar validação de entrada com class-validator
+- Configurar testes automatizados
+- Implementar documentação da API com Swagger
+
+---
+
+Para mais informações, consulte a documentação oficial:
+- [NestJS](https://docs.nestjs.com/)
+- [Prisma](https://www.prisma.io/docs/)
+- [Supabase](https://supabase.com/docs)
