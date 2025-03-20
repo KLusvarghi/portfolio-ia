@@ -1,70 +1,212 @@
-## supabase password: *haZu5S-gvN*p$8
-## porfotio-ia: kaua0707
-## project api key eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpscmRkc2RhcXVobXFjZXlyeW9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI0MTIxNDksImV4cCI6MjA1Nzk4ODE0OX0.Hh2EIx5GC79r_tTsNTdbQi4c6EYL1GEz9IBIIEhrwS4
+# Documentação de Configuração do Projeto
+
+## Índice
+- [Credenciais e Chaves de API](#credenciais-e-chaves-de-api)
+- [Configuração do Pacote Core](#configuração-do-pacote-core)
+- [Configuração do Backend com NestJS](#configuração-do-backend-com-nestjs)
+- [Conectando Core e Backend](#conectando-core-e-backend)
+- [Configuração do Prisma](#configuração-do-prisma)
+- [Conexão com Supabase](#conexão-com-supabase)
+- [Migrações de Banco de Dados](#migrações-de-banco-de-dados)
+- [Gerenciando Alterações no Banco de Dados](#gerenciando-alterações-no-banco-de-dados)
+- [Estrutura Final do Projeto](#estrutura-final-do-projeto)
 
 
-## dentro de core a gente instala o package .json
-  npm init -y
+**Nota de segurança**: Não inclua senhas e chaves de API em arquivos que serão versionados. Este exemplo é apenas para documentação.
 
-##instalando nosso backend com nest
-   basta em https://docs.nestjs.com/ copiar os priemiros comando:
-   -$ npm i -g @nestjs/cli  - irá instalar o nest na nossa maquina
-      - dando um **nest --help** ele nos dará uma serie de comando
-      - dentre eles o **nest new nomedoarquivo** e assim ele irá criar o arquivo 'backened' com todas as dependencias que precisamos para o backend
+## Configuração do Pacote Core
 
-  ## Proximo passo - estabelecer relacção entre a pasta "Cors" com a pasta "backend"
-    dentro de "backend" vamos até a pasta **tsconfig.json** e acrescentamso na ultima linha:
-    ```sh
-      "paths": {
-        "@core": ["../core/src"],
-      }
-    ```
+Inicialize o arquivo package.json no diretório core:
 
+```bash
+npm init -y
+```
 
-    ## a pasta **dist** é a pasta ondem tem a versão final que iremos chamar para subir para o servidor
-      -- e se a gente deixar a aplciação desta maneira ele ta gernado erro ao dar 
-      ```sh
-        npm run start:dev
-      ```
-      -- isso por que ele ainda não se tocou que tem que mudar o import dentro da pasta **main**
-        --para resolver isso, quando a gente da nest --help ele nos da a opção **--entryFile**, e vamos usar ela dentro do **package.json** dentro do comando **"start:dev"**
-        - ficando assim:
-          - "start:dev": "nest start --watch --entryFile backend/src/main"
-          - com isso ele chamará este arquivo para executar a aplicação para test
-          - podendo observar que já colocamos a rota 'backend/src/main' a partir da pasta **dist** porque ele já entende
+Este comando cria um arquivo package.json básico que será usado para gerenciar as dependências do módulo compartilhado.
 
-  ## Resumindo, agora nosso **backend** já está acessando nosso módulo compartilhado, que é o **CORS**
-    - nossa intenção é usar esse arquivo *cors* para compartilhar variáveis, entre outros entre o backend e o frontend
+## Configuração do Backend com NestJS
+
+1. Instale o CLI do NestJS globalmente:
+
+```bash
+npm i -g @nestjs/cli
+```
+
+2. Verifique os comandos disponíveis do NestJS:
+
+```bash
+nest --help
+```
+
+3. Crie uma nova aplicação NestJS:
+
+```bash
+nest new backend
+```
+
+O NestJS criará toda a estrutura básica necessária para o backend, incluindo:
+- Arquivos de configuração
+- Estrutura de diretórios
+- Dependências básicas
+- Scripts para desenvolvimento e produção
+
+## Conectando Core e Backend
+
+Atualize o arquivo `tsconfig.json` na pasta backend para estabelecer uma conexão com o módulo core:
+
+```json
+{
+  // outras configurações...
   
+  "paths": {
+    "@core": ["../core/src"]
+  }
+}
+```
 
+### Notas de Configuração
 
-# Instalação do Prisma
-  ## como já temos nosso proejto isntalado, pulamos algumas configurações que o prisma nos da e executamos dentro de **backend**. https://www.prisma.io/docs/getting-started/quickstart-sqlite
-  ```sh
-    npm install prisma --save-dev
-  ```
+- A pasta `dist` contém a versão final que será implantada no servidor
+- Por padrão, executar `npm run start:dev` gerará erros porque o caminho de importação precisa ser atualizado
 
-## em seguida iniciamos o Prisma, ele irá criar as variáveis de ambiente, etc
-  > ATENÇÃO: Como nós vamos usar o supabase, não vamos colcoar o comando interiro que o prisma nos oferece que irá utilziar o sqllite. E o supabase é baseado em Postgree SQL
-    ```sh
-      npx prisma init 
-      ```
-    - e com isso é criado o arquivo **.env** com um **URL_DATABASE** como se estivesse usando banco de dados local, junto com a pasta "prisma" com o schema.prisma, que é onde iremos criar nosso modelo de dados
+### Corrigindo o Arquivo de Entrada
 
-   ## para fazer a conexão com o supabase
-    - dentro do supabase e dentro do projeto, vai em **connect**, e dentro da aba **ORMs** ele vai nos dar todas as variáveis que temos que colcoar entro de ".env" para fazer a conexão, e com isso, dentro dessa variável que ele dá, ele pede para colocar nossa password do banco de dados
-    - em paralelo, criamos o arquivo **.env.sample** para que quando a gente enviar o projeto para o repositorio, a gente não envie nem mesmo a string de conexão, não deixando dentro do arquivo .env
+Atualize o arquivo `package.json` no script "start:dev" para usar a opção `--entryFile`:
 
+```json
+{
+  "scripts": {
+    "start:dev": "nest start --watch --entryFile backend/src/main"
+  }
+}
+```
 
-# Agora, iremos criar a tabela de "tecnologias" e subir lá no supabase
-  -Para isso, dentro do arquivo ".env.samples" precisamos ter aquelas duas variaáveis confiqguradas
-  - Após isso e após criar o model, vamos aplicar esse model atravez de uma **migration**
-    - para isso, dentro do retminal rodamos "npx prisma migrate dev" e ele vai pegar tudo que tem dentro de **schema.prisma** e vai aplciar no banco de dados
-    - com isso, ele irá criar dentro da pasta **prisma** uma pasta chamada "migrations" e dentro dela, um arquivo com a data e hora que foi criado, e dentro dele, o arquivo **migration.sql** que é o arquivo que foi aplicado no banco de dados, e nele estará todas as alterações que foram feitas no schema.
-       - ENtão, toda alteração feita, é uma migration, que irá criar um novo arquivo .sql, senod o 'prisma" que cria o schema para a gente
+Isso garante que a aplicação seja executada a partir do ponto de entrada correto. O NestJS agora será capaz de encontrar o módulo core compartilhado.
 
-    # Quando criar uma migration e sem querer colocou os dados errado ou faltou algo, ou voce pode apenas alterar no código, e ele irá sobrescrever, ou pode ir no proprio editor sql do supabase e digitar o script, ou pode dar o comando "npx prisma migrate reset" e com isso ele irá limpar todas as tabelas e executar as migrations que esão registradas debtro do arquivo **migration.sql**
+## Configuração do Prisma
 
-    # e quando a gente quer fazer uma relação de uma tabela a outra, a gente pode criar uma outra tabela, ou a gente pode apenas fazer menção de uma tabela para outra automaticamente
+1. Instale o Prisma no diretório do backend:
 
-    # se voce faz uma alteração em alguma tabela direto na interface so supabase e precisa atualizar no código, de o comando "npx prisma db pull"
+```bash
+npm install prisma --save-dev
+```
+
+2. Inicialize o Prisma (observe que não estamos usando SQLite, pois nos conectaremos ao Supabase com PostgreSQL):
+
+```bash
+npx prisma init
+```
+
+Isso cria:
+- Arquivo `.env` com uma URL padrão de banco de dados
+- Pasta `prisma` com `schema.prisma` para modelagem de dados
+
+O Prisma é um ORM (Object-Relational Mapping) que simplifica a interação com o banco de dados usando TypeScript.
+
+## Conexão com Supabase
+
+1. No painel do projeto do Supabase, vá para **Connect** > **ORMs**
+2. Copie as variáveis da string de conexão fornecidas
+3. Atualize o arquivo `.env` com seus detalhes de conexão do Supabase
+4. Crie um arquivo `.env.sample` sem informações sensíveis para controle de versão
+
+Exemplo de como seu arquivo `.env` deve ficar:
+
+```
+DATABASE_URL="postgresql://postgres:[SEU-PASSWORD]@db.[SEU-PROJECT-ID].supabase.co:5432/postgres"
+```
+
+## Migrações de Banco de Dados
+
+### Criando Tabelas
+
+1. Defina seus modelos em `schema.prisma`. Exemplo:
+
+```prisma
+model Tecnologia {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  descricao String?
+  criado_em DateTime @default(now())
+}
+```
+
+2. Aplique as alterações ao banco de dados:
+
+```bash
+npx prisma migrate dev --name criar-tabela-tecnologias
+```
+
+Isso irá:
+- Criar uma pasta `migrations` no diretório `prisma`
+- Gerar um arquivo de migração com carimbo de data/hora contendo comandos SQL
+- Aplicar as alterações ao seu banco de dados Supabase
+
+## Gerenciando Alterações no Banco de Dados
+
+Se você precisar corrigir erros em suas migrações:
+
+- Opção 1: Atualize seu schema e crie uma nova migração
+- Opção 2: Edite SQL diretamente no editor SQL do Supabase
+- Opção 3: Redefina todas as migrações (atenção: limpa todos os dados):
+
+```bash
+npx prisma migrate reset
+```
+
+### Sincronizando Alterações de Banco de Dados
+
+Se você fizer alterações diretamente no Supabase e precisar atualizar seu schema local:
+
+```bash
+npx prisma db pull
+```
+
+### Relacionamentos entre Tabelas
+
+Você pode criar relacionamentos entre tabelas:
+- Criando uma nova tabela para o relacionamento
+- Adicionando referências diretas entre tabelas em seu schema
+
+Exemplo de relacionamento no schema:
+
+```prisma
+model Projeto {
+  id           Int          @id @default(autoincrement())
+  nome         String
+  tecnologias  Tecnologia[]
+}
+
+model Tecnologia {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  projetos  Projeto[]
+}
+```
+
+## Estrutura Final do Projeto
+
+Após seguir todos os passos, seu projeto deve ter uma estrutura semelhante a esta:
+
+```
+projeto-raiz/
+├── core/
+│   ├── package.json
+│   └── src/
+│       └── (arquivos compartilhados)
+├── backend/
+│   ├── dist/
+│   ├── node_modules/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
+│   ├── src/
+│   │   └── main.ts
+│   ├── .env
+│   ├── .env.sample
+│   ├── package.json
+│   └── tsconfig.json
+└── (outros arquivos do projeto)
+```
+
+Esta arquitetura permite compartilhar código entre módulos, gerenciar modelos de dados de forma eficiente e manter uma clara separação de responsabilidades entre componentes.
