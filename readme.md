@@ -209,3 +209,22 @@ projeto-raiz/
 ```
 
 Esta arquitetura permite compartilhar código entre módulos, gerenciar modelos de dados de forma eficiente e manter uma clara separação de responsabilidades entre componentes.
+
+
+--------------------
+
+> Caso o arquivo do app.controller.ts não consiga acessar o arquivo .prettierrc na raiz do projeto, de o comando "npx prettier --check " e veja o erro, as vezes pode ser apenas erro do vscode que não conseguiu interpretar o arquivo.
+
+-- COnfigurando Módulos
+# NO nest, uma dos seus diferenciais é utilziar o CLI para exevutar ações, dando "nest --help" ele irá nos dar varias opções, e dentro delas, a que mais iremos utilizar é o "nest g" snedo esse "g" de "generate", servindo para criar coisas
+
+- Assim como o angular, o nest ele é modularizado, sendo todo organizado em modulos, e esse modulos serão criados dentro do porjeto como pastas.
+  - O intuito desses modulos é para que voce consiga usar um modulo/pasta ou outra de forma mais burocrática, e também para que voce possa ter um controle melhor de como está seu projeto.
+
+  - dando o comando "nest g modeule db" ele cria uma pasta dentro de backend/src/db, e dentro dela ele cria um arquivo chamado db.module.ts, e dentro dele ele cria uma classe chamada DbModule, que é uma classe que vai ser responsável por gerenciar o modulo.
+    - e com isso criamos o module de projects e technologie
+  
+  - começando por technologie, nó vamos criar o "controller" para que a gente possa acessar os dados de "technologies" através dos methods GET, POST, PUT e DELETE da nossa API Rest
+
+
+
