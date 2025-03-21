@@ -539,3 +539,11 @@ Para mais informações, consulte a documentação oficial:
 - [NestJS](https://docs.nestjs.com/)
 - [Prisma](https://www.prisma.io/docs/)
 - [Supabase](https://supabase.com/docs)
+
+
+
+
+grant usage on schema "public" to anon;
+grant usage on schema "public" to authenticated;
+grant all on technologies to anon;
+grant all on technologies to authenticated;
