@@ -1,0 +1,21 @@
+{
+	"name": "portfolio-ia",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "npx concurrently \"cd backend && npm run start:dev\" \"cd frontend && npm run dev\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KLusvarghi/portfolio-ia.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/KLusvarghi/portfolio-ia/issues"
+	},
+	"homepage": "https://github.com/KLusvarghi/portfolio-ia#readme",
+	"description": ""
+}
