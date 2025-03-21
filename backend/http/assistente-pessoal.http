@@ -1,0 +1,7 @@
+POST https://klusvarghi.app.n8n.cloud/webhook-test/assistente-pessoal
+Content-Type: application/json
+
+{
+  "chatID": "1212132321",
+  "message": "Voce trabalha com Next.js?"
+} 
