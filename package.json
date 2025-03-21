@@ -4,7 +4,9 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "npx concurrently \"cd backend && npm run start:dev\" \"cd frontend && npm run dev\""
+		"dev": "npx concurrently \"cd backend && npm run start:dev\" \"cd frontend && npm run dev\"",
+		"front": "npx concurrently \"cd frontend && npm run dev\"",
+		"back": "npx concurrently \"cd backend && npm run start:dev\""
 	},
 	"repository": {
 		"type": "git",
